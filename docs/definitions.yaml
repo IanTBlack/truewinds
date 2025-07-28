@@ -23,7 +23,7 @@ relative_wind_direction:
   short_name: rwd
   long_name: Relative Wind Direction
   standard_name: relative_wind_direction
-  description: The direction of the wind from the platform's reference frame, typically expressed in degrees from true north.
+  description: The direction from which the wind is occurring with respect to the platform's reference frame, typically expressed in degrees from true north.
   units: degrees
 
 relative_wind_speed:
