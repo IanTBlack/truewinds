@@ -2,21 +2,37 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from truewinds.core import deg2rad, rad2deg
-from truewinds.qaqc import (flag_course_over_ground,
-                            flag_speed_over_ground,
-                            flag_true_heading,
-                            flag_relative_wind_speed,
-                            flag_relative_wind_direction)
+from truewinds.qaqc import (FLAG,
+                            flag_direction,
+                            flag_speed,
+                            check_zlr)
 
 
-def true_winds(cog: float | ArrayLike,
-               sog: float | ArrayLike,
-               hdg: float | ArrayLike,
-               rwd: float | ArrayLike,
-               rws: float | ArrayLike,
-               zlr: float = 0.0,
-               return_flags: bool = True,
-               verbose: bool = False) -> dict[str, float | int | ArrayLike]:
+def compute_apparent_wind_direction(hdg: float | ArrayLike,
+                                    rwd: float | ArrayLike,
+                                    zlr: float = 0.0) -> float | ArrayLike:
+    """
+    Compute the apparent wind direction from the true heading, relative wind direction, and zero line reference.
+
+    :param hdg: The true heading of the vessel or platform in degrees.
+    :param rwd: The relative wind direction in degrees.
+    :param zlr: The clockwise angle between the bow of the platform and the anemometer reference line in degrees.
+    :return: The apparent wind direction in degrees.
+    """
+
+    # Compute apparent wind direction and reduce it to the range [0, 360].
+    awd = hdg + rwd + zlr
+    awd = awd % 360
+    return awd
+
+
+def compute_true_winds(cog: float | ArrayLike,
+                       sog: float | ArrayLike,
+                       hdg: float | ArrayLike,
+                       rwd: float | ArrayLike,
+                       rws: float | ArrayLike,
+                       zlr: float = 0.0,
+                       return_flags: bool = True) -> dict[str, float | int | ArrayLike]:
     """
     Compute true wind direction and true wind speed from a moving reference frame, such as a vessel or mobile platform.
 
@@ -30,7 +46,7 @@ def true_winds(cog: float | ArrayLike,
         Units for speed over ground much match relative wind speed (rws) units.
     :param hdg: The true heading of the vessel or platform in degrees.
         Most often derived from a NMEA0183 HDG message.
-    :param rwd: Relative wind direction in degrees. Derived from an anemometer on the platform.
+    :param rwd: Relative wind direction in degrees from which the wind is blowing. Derived from an anemometer on the platform.
     :param rws: Relative wind speed in the same units as speed over ground (sog).
         Derived from an anemometer on the platform.
     :param zlr: The clockwise angle between the bow of the platform and the anemometer reference line in degrees.
@@ -39,7 +55,11 @@ def true_winds(cog: float | ArrayLike,
     :return: A dictionary containing true wind direction and true wind speed
     """
 
-    if np.all([isinstance(v, float | int) for v in [cog, sog, hdg, rwd, rws, zlr]]):
+    # Checks
+    check_zlr(zlr)
+
+    # Check input types.
+    if np.all([isinstance(v, float | int) for v in [cog, sog, hdg, rwd, rws]]):
         return_singleton = True
     else:
         return_singleton = False
@@ -52,36 +72,25 @@ def true_winds(cog: float | ArrayLike,
     rws = np.asarray(rws)
 
     # Flag data
-    flag_cog = flag_course_over_ground(cog)
-    flag_sog = flag_speed_over_ground(sog)
-    flag_hdg = flag_true_heading(hdg)
-    flag_rwd = flag_relative_wind_direction(rwd)
-    flag_rws = flag_relative_wind_speed(rws)
-
-    if verbose is True:
-        num_bad_cog = np.sum(flag_cog == 4)
-        num_bad_sog = np.sum(flag_sog == 4)
-        num_bad_hdg = np.sum(flag_hdg == 4)
-        num_bad_rwd = np.sum(flag_rwd == 4)
-        num_bad_rws = np.sum(flag_rws == 4)
-        bad_zlr = True if (zlr <0) or (zlr > 360) else False
-        msg = f"# Bad cog: {num_bad_cog}\n# Bad sog: {num_bad_sog}\n# Bad hdg: {num_bad_hdg}\n# Bad rwd: {num_bad_rwd}\n# Bad rws: {num_bad_rws}\n# Bad zlr: {bad_zlr}"
-        print(msg)
+    flag_cog = flag_direction(cog)
+    flag_sog = flag_speed(sog)
+    flag_hdg = flag_direction(hdg)
+    flag_rwd = flag_direction(rwd)
+    flag_rws = flag_speed(rws)
 
     # NaN bad data
-    cog = np.where(flag_cog == 4, np.nan, cog)
-    sog = np.where(flag_sog == 4, np.nan, sog)
-    hdg = np.where(flag_hdg == 4, np.nan, hdg)
-    rwd = np.where(flag_rwd == 4, np.nan, rwd)
-    rws = np.where(flag_rws == 4, np.nan, rws)
+    cog = np.where(flag_cog == FLAG.BAD, np.nan, cog)
+    sog = np.where(flag_sog == FLAG.BAD, np.nan, sog)
+    hdg = np.where(flag_hdg == FLAG.BAD, np.nan, hdg)
+    rwd = np.where(flag_rwd == FLAG.BAD, np.nan, rwd)
+    rws = np.where(flag_rws == FLAG.BAD, np.nan, rws)
 
     # Convert course over ground to math coordinates and ensure it is in the range [0, 360].
     mcog = 90 - cog
     mcog = np.where(mcog <= 0, mcog + 360, mcog)
 
-    # Compute apparent wind direction and ensure it is in the range [0, 360].
-    awd = hdg + rwd + zlr
-    awd = awd % 360
+    # Compute apparent wind direction.
+    awd = compute_apparent_wind_direction(hdg=hdg, rwd=rwd, zlr=zlr)
 
     # Convert apparent wind direction to math coordinates and ensure it is in the range [0, 360].
     mawd = 270 - awd
@@ -91,7 +100,7 @@ def true_winds(cog: float | ArrayLike,
     # Compute true wind speed.
     x = rws * np.cos(deg2rad(mawd)) + sog * np.cos(deg2rad(mcog))
     y = rws * np.sin(deg2rad(mawd)) + sog * np.sin(deg2rad(mcog))
-    tws = np.sqrt(x*x + y*y)
+    tws = np.sqrt(x * x + y * y)
 
     # Compute true wind direction.
     mtwd = np.where((np.abs(x) > 1e-05), rad2deg(np.arctan2(y, x)), 180 - (90 * y) / np.abs(y))
@@ -104,6 +113,7 @@ def true_winds(cog: float | ArrayLike,
     twd = np.where(twd > 360, (twd % 360) * calm, twd)
     twd = np.where((calm == 1) & (twd < 1e-05), 360, twd)
 
+    # Convert computed data to dictionaries.
     tw = {'true_wind_direction': twd,
           'true_wind_speed': tws}
 

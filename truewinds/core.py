@@ -48,12 +48,3 @@ def kmph2mps(kmph: float | ArrayLike) -> float | ArrayLike:
 
     mps = kmph * 1000 / 3600
     return mps
-
-
-### NEEDS TESTS
-# def mean_direction(degrees: ArrayLike) -> float:
-#     radians = deg2rad(degrees)
-#     mean_rad = np.arctan2(np.sum(np.sin(radians)), np.sum(np.cos(radians)))
-#     mean_deg = rad2deg(mean_rad) % 360
-#     return mean_deg
-#
