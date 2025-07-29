@@ -2,7 +2,7 @@ course_over_ground:
   short_name: cog
   long_name: Course Over Ground
   standard_name: course_over_ground
-  description: The direction in which the platform is moving relative to ground. Typically derived from a NMEA0183 VTG message and expressed in degrees from true north.
+  description: The direction in which the platform is moving toward relative to ground. Typically derived from a NMEA0183 VTG message and expressed in degrees from true north.
   units: degrees
 
 speed_over_ground:
@@ -10,41 +10,39 @@ speed_over_ground:
   long_name: Speed Over Ground
   standard_name: speed_over_ground
   description: The speed of the platform relative to the ground. Typically derived from a NMEA0183 VTG message and expressed in knots or km/h.
-  units: knots
 
 heading:
   short_name: hdg
   long_name: True Heading
   standard_name: heading
-  description: The direction in which the platform is pointing, typically expressed in degrees from true north.
+  description: The direction in which the platform bow is pointed toward, typically expressed in degrees from true north.
   units: degrees
 
 relative_wind_direction:
   short_name: rwd
   long_name: Relative Wind Direction
   standard_name: relative_wind_direction
-  description: The direction from which the wind is occurring with respect to the platform's reference frame, typically expressed in degrees from true north.
+  description: The direction from which the wind is moving FROM with respect to the platform's reference frame.
   units: degrees
 
 relative_wind_speed:
     short_name: rws
     long_name: Relative Wind Speed
     standard_name: relative_wind_speed
-    description: The speed of the wind as experienced by the platform, typically expressed in meters per second.
-    units: m/s
+    description: The speed of the wind as experienced by the platform.
 
 zero_line_reference:
   short_name: zlr
   long_name: Zero Line Reference
   standard_name: zero_line_reference
-  description: The number of degrees clockwise from the bow or the platform's centerline that the anemometer centerline is facing.
+  description: The number of degrees clockwise from the bow or the platform's centerline that the anemometer north marker is facing.
   units: degrees
 
 true_wind_direction:
     short_name: twd
     long_name: True Wind Direction
     standard_name: true_wind_direction
-    description: The direction the wind originates from, with respect to true north, using Earth coordinates as a reference.
+    description: The direction the wind originates FROM, with respect to true north, using Earth coordinates as a reference.
     units: degrees
     ancillary_variables:
       - course_over_ground
@@ -58,8 +56,7 @@ true_wind_speed:
     short_name: tws
     long_name: True Wind Speed
     standard_name: true_wind_speed
-    description: The speed of the wind as it would be measured at a fixed point on the ground, typically expressed in meters per second.
-    units: m/s
+    description: The speed of the wind as it would be measured at a fixed point on the ground.
     ancillary_variables:
       - course_over_ground
       - speed_over_ground
