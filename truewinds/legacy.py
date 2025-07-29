@@ -241,7 +241,6 @@ def truew(crse=None,
                 tspd = wmis[3]
 
     return (tdir, tspd, adir, nw, nwam, nwpm, nwf)
-    #$return (mcrse,None)
 
 
 ###########################################################################
