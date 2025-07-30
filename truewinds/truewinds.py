@@ -7,7 +7,6 @@ from truewinds.qaqc import (FLAG,
                             flag_speed,
                             check_zlr)
 
-
 def compute_apparent_wind_direction(hdg: float | ArrayLike,
                                     rwd: float | ArrayLike,
                                     zlr: float = 0.0) -> float | ArrayLike:
@@ -26,13 +25,46 @@ def compute_apparent_wind_direction(hdg: float | ArrayLike,
     return awd
 
 
+def compute_uv(true_wind_direction: float | ArrayLike,
+               true_wind_speed: float | ArrayLike) -> tuple[float | ArrayLike, float | ArrayLike]:
+    """
+    Compute the u and v components of the true wind vector.
+
+    :param true_wind_direction: True wind direction in degrees.
+    :param true_wind_speed: True wind speed in the same units as the speed.
+    :return: A tuple containing the u and v components of the true wind vector.
+    """
+
+    if np.all([isinstance(v, float | int) for v in [true_wind_direction, true_wind_speed]]):
+        return_singleton = True
+    else:
+        return_singleton = False
+
+    # Convert to Numpy arrays if the inputs are not already arrays.
+    true_wind_direction = np.asarray(true_wind_direction)
+    true_wind_speed = np.asarray(true_wind_speed)
+
+    # Compute u and v components of the true wind vector.
+    u = -1 * true_wind_speed * np.sin(deg2rad(true_wind_direction))
+    v = -1 * true_wind_speed * np.cos(deg2rad(true_wind_direction))
+
+    components = {'u_true_wind': u, 'v_true_wind': v}
+
+    if return_singleton is True:
+        components = {k: float(v) for k, v in components.items()}
+
+    return components
+
+
+
 def compute_true_winds(cog: float | ArrayLike,
                        sog: float | ArrayLike,
                        hdg: float | ArrayLike,
                        rwd: float | ArrayLike,
                        rws: float | ArrayLike,
                        zlr: float = 0.0,
-                       return_flags: bool = True) -> dict[str, float | int | ArrayLike]:
+                       return_flags: bool = True,
+                       return_components: bool = True) -> dict[str, float | int | ArrayLike]:
     """
     Compute true wind direction and true wind speed from a moving reference frame, such as a vessel or mobile platform.
 
@@ -123,12 +155,16 @@ def compute_true_winds(cog: float | ArrayLike,
              'flag_rwd': flag_rwd,
              'flag_rws': flag_rws}
 
+    if return_components is True:
+        components = compute_uv(true_wind_direction=twd, true_wind_speed=tws)
+        tw = tw | components
+
     if return_singleton is True:
         tw = {k: float(v) for k, v in tw.items()}
         flags = {k: int(v) for k, v in flags.items()}
 
     if return_flags is True:
-        tw_flags = tw | flags
-        return tw_flags
-    else:
-        return tw
+        tw = tw | flags
+
+    return tw
+

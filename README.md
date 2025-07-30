@@ -12,6 +12,9 @@ These differences occur at digits that are considered insignificant for wind spe
 
 
 ## Documentation
+
+Code documentation for truewinds is available here: https://iantblack.github.io/truewinds/
+
 The code truewinds is based on can be found here: [SAMOS True Winds Tools](https://samos.coaps.fsu.edu/html/tools_truewinds.php)
 
 The original manuscript for true winds computation can be found here: [True Winds Manuscript](`https://doi.org/10.1175/1520-0426(1999)016<0939:EMTITW>2.0.CO;2`)
