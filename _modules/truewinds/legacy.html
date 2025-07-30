@@ -1,0 +1,620 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>truewinds.legacy &mdash; truewinds 0.0.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8c5712d9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            truewinds
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">truewinds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../truewinds.html">truewinds code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">truewinds</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">truewinds.legacy</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for truewinds.legacy</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Copyright 2021 Florida State University</span>
+
+<span class="sd">Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="sd">of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="sd">in the Software without restriction, including without limitation the rights</span>
+<span class="sd">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="sd">copies of the Software, and to permit persons to whom the Software is furnished</span>
+<span class="sd">to do so, subject to the following conditions:</span>
+
+<span class="sd">The above copyright notice and this permission notice shall be included in all</span>
+<span class="sd">copies or substantial portions of the Software.</span>
+
+<span class="sd">THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="sd">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="sd">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="sd">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="sd">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="sd">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="c1">###########################################################################</span>
+<span class="c1"># Calculate true winds from vessel speed, course and relative wind</span>
+<span class="c1">#</span>
+<span class="c1"># These routines will compute meteorological true winds (direction from</span>
+<span class="c1"># which wind is blowing, relative to true north; and speed relative to</span>
+<span class="c1"># the fixed earth).</span>
+<span class="c1">#</span>
+<span class="c1"># Created: 12/17/96</span>
+<span class="c1"># Comments updated: 10/01/97</span>
+<span class="c1"># Last updated:  4/12/2921</span>
+<span class="c1"># Developed by: Shawn R. Smith and Mark A. Bourassa</span>
+<span class="c1"># Programmed by: Mylene Remigio</span>
+<span class="c1"># Converted to Matlab from C true wind computation code truewind.c .</span>
+<span class="c1"># Converted to python from Matlab with SMOP 0.1</span>
+<span class="c1"># Direct questions to:  samos@coaps.fsu.edu</span>
+<span class="c1">#</span>
+<span class="c1"># 9/30/2014 : If the true wind has speed and its coming from the north</span>
+<span class="c1">#	      then its direction should be 360deg. The problem was fixed</span>
+<span class="c1">#	      in which the program&#39;s output showed 0deg instead of 360deg.</span>
+<span class="c1"># 8/08/2017 : Converted from Matlab to python by David Pablo Cohn</span>
+<span class="c1">#             (david.cohn@gmail.com); verified on python 2.7-3.5</span>
+<span class="c1"># 4/12/2021 : Added a check to ensure the input lists to truewinds() have the</span>
+<span class="c1">#             same length. Change made by Homer McMillan (hmcmillan@coaps.fsu.edu)</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">atan2</span><span class="p">,</span> <span class="n">sqrt</span>
+
+<span class="n">DEFAULT_ZRL</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># clockwise angle between bow and anemometer reference line</span>
+<span class="n">DEFAULT_MISSING_VALUES</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1111.0</span><span class="p">,</span>  <span class="c1"># missing val for course_over_ground</span>
+                          <span class="o">-</span><span class="mf">9999.0</span><span class="p">,</span>  <span class="c1"># missing val for speed_over_ground</span>
+                          <span class="mf">1111.0</span><span class="p">,</span>  <span class="c1"># missing val for wind_dir</span>
+                          <span class="mf">9999.0</span><span class="p">,</span>  <span class="c1"># missing val for wind_speed</span>
+                          <span class="mf">5555.0</span><span class="p">,</span>  <span class="c1"># missing val for heading</span>
+                          <span class="p">]</span>
+
+
+<span class="c1">###########################################################################</span>
+<span class="c1"># FUNCTION truew() - calculates true winds from vessel speed, course and</span>
+<span class="c1"># relative wind</span>
+<span class="c1">#</span>
+<span class="c1"># INPUTS</span>
+<span class="c1">#</span>
+<span class="c1"># crse	real	Course TOWARD WHICH the vessel is moving over</span>
+<span class="c1">#			the ground. Referenced to true north and the</span>
+<span class="c1">#                       fixed earth.</span>
+<span class="c1"># cspd	real	Speed of vessel over the ground. Referenced</span>
+<span class="c1">#			to the fixed earth.</span>
+<span class="c1"># hd	real	Heading toward which bow of vessel is pointing.</span>
+<span class="c1">#			Referenced to true north.</span>
+<span class="c1"># zlr	real		Zero line reference -- angle between bow and</span>
+<span class="c1">#			zero line on anemometer.  Direction is clockwise</span>
+<span class="c1">#			from the bow.  (Use bow=0 degrees as default</span>
+<span class="c1">#			when reference not known.)</span>
+<span class="c1"># wdir 	real	Wind direction measured by anemometer,</span>
+<span class="c1">#			referenced to the ship.</span>
+<span class="c1"># wspd	real	Wind speed measured by anemometer,referenced to</span>
+<span class="c1">#			the vessel&#39;s frame of reference.</span>
+<span class="c1"># wmis	real	Five element array containing missing values for</span>
+<span class="c1">#			crse, cspd, wdir, wspd, and hd. In the output,</span>
+<span class="c1">#                       the missing value for tdir is identical to the</span>
+<span class="c1">#                       missing value specified in wmis for wdir.</span>
+<span class="c1">#                       Similarly, tspd uses the missing value assigned</span>
+<span class="c1">#			to wmis for wspd.</span>
+
+<span class="c1"># *** WDIR MUST BE METEOROLOGICAL (DIRECTION FROM)! CRSE AND CSPD MUST</span>
+<span class="c1">#     BE RELATIVE TO A FIXED EARTH! ***</span>
+
+<span class="c1"># OUTPUT VALUES:</span>
+
+<span class="c1"># tdir	real	True wind direction - referenced to true north</span>
+<span class="c1">#                       and the fixed earth with a direction from which</span>
+<span class="c1">#			the wind is blowing (meteorological).</span>
+<span class="c1"># tspd	real	True wind speed - referenced to the fixed earth.</span>
+<span class="c1"># adir	real	Apparent wind direction (direction measured by</span>
+<span class="c1">#			wind vane, relative to true north). IS</span>
+<span class="c1">#                       REFERENCED TO TRUE NORTH &amp; IS DIRECTION FROM</span>
+<span class="c1">#                       WHICH THE WIND IS BLOWING. Apparent wind</span>
+<span class="c1">#			direction is the sum of the ship relative wind</span>
+<span class="c1">#                       direction (measured by wind vane relative to the</span>
+<span class="c1">#                       bow), the ship&#39;s heading, and the zero-line</span>
+<span class="c1">#			reference angle.  NOTE:  The apparent wind speed</span>
+<span class="c1">#			has a magnitude equal to the wind speed measured</span>
+<span class="c1">#		  	by the anemometer.</span>
+
+<span class="c1"># DIAGNOSTIC OUTPUT:</span>
+
+<span class="c1"># nw	integer		Number of observation times for which tdir and</span>
+<span class="c1">#                       tspd were calculated (without missing values)</span>
+<span class="c1"># nwpm	integer		Number of observation times with some values</span>
+<span class="c1">#  			(crse, cspd, wdir, wspd, hd) missing.  tdir,</span>
+<span class="c1">#			tspd set to missing value.</span>
+<span class="c1"># nwam	integer		Number of observation times with all values</span>
+<span class="c1">#  			(crse, cspd, wdir, wspd, hd) missing. tdir,</span>
+<span class="c1">#			tspd set to missing value.</span>
+<span class="c1"># nwf	integer		Number of observation times where the program</span>
+<span class="c1">#			fails -- at least one of the values (crse, cspd,</span>
+<span class="c1">#			wdir, wspd, hd) is invalid</span>
+
+<div class="viewcode-block" id="truew">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.legacy.truew">[docs]</a>
+<span class="k">def</span> <span class="nf">truew</span><span class="p">(</span><span class="n">crse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">cspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">wdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">zlr</span><span class="o">=</span><span class="n">DEFAULT_ZRL</span><span class="p">,</span>
+          <span class="n">hd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">wspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">wmis</span><span class="o">=</span><span class="n">DEFAULT_MISSING_VALUES</span><span class="p">,</span>
+          <span class="p">):</span>
+    <span class="c1"># INITIALIZE VARIABLES</span>
+    <span class="n">adir</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nw</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nwam</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nwpm</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nwf</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">dtor</span> <span class="o">=</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+
+    <span class="c1"># Check course, ship speed, heading, wind direction, and</span>
+    <span class="c1"># wind speed for valid values (i.e. neither missing nor</span>
+    <span class="c1"># outside physically acceptable ranges).</span>
+    <span class="k">if</span> <span class="p">((((</span><span class="n">crse</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">crse</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">crse</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="ow">or</span>
+            <span class="p">((</span><span class="n">cspd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">cspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="ow">or</span>
+            <span class="p">(((</span><span class="n">wdir</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">wdir</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wdir</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="ow">or</span>
+            <span class="p">((</span><span class="n">wspd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span> <span class="ow">or</span>
+            <span class="p">(((</span><span class="n">hd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">hd</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">hd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">]))):</span>
+        <span class="c1"># When some or all of input data fails range check, true</span>
+        <span class="c1"># winds are set to missing. Step index for input</span>
+        <span class="c1"># value(s) being out of range</span>
+        <span class="n">nwf</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">tdir</span> <span class="o">=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">tspd</span> <span class="o">=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">crse</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">cspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">and</span>
+                <span class="p">(</span><span class="n">wdir</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">hd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">])):</span>
+            <span class="c1"># Step index for all input values being non-missing</span>
+            <span class="n">nw</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">crse</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">cspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span>
+                    <span class="p">(</span><span class="n">wdir</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">wspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">hd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">])):</span>
+                <span class="c1"># Step index for part of input values being missing</span>
+                <span class="n">nwpm</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Step index for all input values being missing</span>
+                <span class="n">nwam</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># When course, ship speed, heading, wind direction, and wind speed</span>
+    <span class="c1"># are all in range and non-missing, then compute true winds.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">crse</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">cspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">and</span>
+                <span class="p">(</span><span class="n">wdir</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">hd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">])):</span>
+            <span class="n">nw</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># Convert from navigational coordinates to</span>
+            <span class="c1"># angles commonly used in mathematics</span>
+            <span class="n">mcrse</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">-</span> <span class="n">crse</span>
+            <span class="c1"># Keep the value between 0 and 360 degrees</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">mcrse</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">):</span>
+                <span class="n">mcrse</span> <span class="o">=</span> <span class="n">mcrse</span> <span class="o">+</span> <span class="mf">360.0</span>
+            <span class="c1"># Check zlr for valid value.  If not valid, set equal to 0</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">zlr</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">zlr</span> <span class="o">&gt;</span> <span class="mf">360.0</span><span class="p">)):</span>
+                <span class="n">zlr</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="c1"># Calculate apparent wind direction</span>
+            <span class="n">adir</span> <span class="o">=</span> <span class="n">hd</span> <span class="o">+</span> <span class="n">wdir</span> <span class="o">+</span> <span class="n">zlr</span>
+            <span class="c1"># Keep adir between 0 and 360 degrees</span>
+            <span class="k">while</span> <span class="n">adir</span> <span class="o">&gt;=</span> <span class="mf">360.0</span><span class="p">:</span>
+                <span class="n">adir</span> <span class="o">=</span> <span class="n">adir</span> <span class="o">-</span> <span class="mf">360.0</span>
+
+            <span class="c1"># Convert from meteorological coordinates to angles</span>
+            <span class="c1"># commonly used in mathematics</span>
+            <span class="n">mwdir</span> <span class="o">=</span> <span class="mf">270.0</span> <span class="o">-</span> <span class="n">adir</span>
+            <span class="c1"># Keep mdir between 0 and 360 degrees</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">mwdir</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">):</span>
+                <span class="n">mwdir</span> <span class="o">=</span> <span class="n">mwdir</span> <span class="o">+</span> <span class="mf">360.0</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">mwdir</span> <span class="o">&gt;</span> <span class="mf">360.0</span><span class="p">):</span>
+                <span class="n">mwdir</span> <span class="o">=</span> <span class="n">mwdir</span> <span class="o">-</span> <span class="mf">360.0</span>
+            <span class="c1"># Determine the east-west vector component and the</span>
+            <span class="c1"># north-south vector component of the true wind</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">wspd</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">mwdir</span> <span class="o">*</span> <span class="n">dtor</span><span class="p">)</span> <span class="o">+</span> <span class="n">cspd</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">mcrse</span> <span class="o">*</span> <span class="n">dtor</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">wspd</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">mwdir</span> <span class="o">*</span> <span class="n">dtor</span><span class="p">)</span> <span class="o">+</span> <span class="n">cspd</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">mcrse</span> <span class="o">*</span> <span class="n">dtor</span><span class="p">)</span>
+            <span class="c1"># Use the two vector components to calculate the true wind</span>
+            <span class="c1"># speed</span>
+            <span class="n">tspd</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">calm_flag</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># Determine the angle for the true wind</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-05</span><span class="p">):</span>
+                <span class="n">mtdir</span> <span class="o">=</span> <span class="p">(</span><span class="n">atan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="o">/</span> <span class="n">dtor</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-05</span><span class="p">):</span>
+                    <span class="n">mtdir</span> <span class="o">=</span> <span class="mf">180.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">90.0</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># The true wind speed is essentially zero: winds</span>
+                    <span class="c1"># are calm and direction is not well defined</span>
+                    <span class="n">mtdir</span> <span class="o">=</span> <span class="mf">270.0</span>
+                    <span class="n">calm_flag</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># Convert from the common mathematical angle coordinate to</span>
+            <span class="c1"># the meteorological wind direction</span>
+            <span class="n">tdir</span> <span class="o">=</span> <span class="mf">270.0</span> <span class="o">-</span> <span class="n">mtdir</span>
+            <span class="c1"># Make sure that the true wind angle is between</span>
+            <span class="c1"># 0 and 360 degrees</span>
+            <span class="k">while</span> <span class="n">tdir</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">tdir</span> <span class="o">=</span> <span class="p">(</span><span class="n">tdir</span> <span class="o">+</span> <span class="mf">360.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">calm_flag</span>
+
+            <span class="k">while</span> <span class="n">tdir</span> <span class="o">&gt;</span> <span class="mf">360.0</span><span class="p">:</span>
+                <span class="n">tdir</span> <span class="o">=</span> <span class="p">(</span><span class="n">tdir</span> <span class="o">-</span> <span class="mf">360.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">calm_flag</span>
+
+            <span class="c1"># Ensure wmo convention for tdir = 360 for win</span>
+            <span class="c1"># from north and tspd &gt; 0</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">calm_flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">tdir</span> <span class="o">&lt;</span> <span class="mf">0.0001</span><span class="p">)):</span>
+                <span class="n">tdir</span> <span class="o">=</span> <span class="mf">360.0</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">crse</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">cspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span>
+                    <span class="p">(</span><span class="n">wdir</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">wspd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">hd</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">])):</span>
+                <span class="n">nwpm</span> <span class="o">=</span> <span class="n">nwpm</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">tdir</span> <span class="o">=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">tspd</span> <span class="o">=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                <span class="c1"># When course, ship speed, apparent direction, and</span>
+                <span class="c1"># wind speed are all in range but all of these input</span>
+                <span class="c1"># values are missing, then set true wind direction and</span>
+                <span class="c1"># speed to missing.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nwam</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">tdir</span> <span class="o">=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">tspd</span> <span class="o">=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">tdir</span><span class="p">,</span> <span class="n">tspd</span><span class="p">,</span> <span class="n">adir</span><span class="p">,</span> <span class="n">nw</span><span class="p">,</span> <span class="n">nwam</span><span class="p">,</span> <span class="n">nwpm</span><span class="p">,</span> <span class="n">nwf</span><span class="p">)</span></div>
+
+
+
+<span class="c1">###########################################################################</span>
+<span class="c1">###########################################################################</span>
+<span class="c1"># FUNCTION truewinds() - calculates true winds for a list of inputs</span>
+<span class="c1">#</span>
+<span class="c1"># INPUT VALUES:</span>
+<span class="c1">#</span>
+<span class="c1"># sel	integer		Sets option for diagnostic output.  There are</span>
+<span class="c1">#			four settings:</span>
+<span class="c1">#</span>
+<span class="c1">#			Option 4:  Calculates true winds from input</span>
+<span class="c1">#				   arrays with no diagnostic output or</span>
+<span class="c1">#				   warnings. NOT RECOMMENDED.</span>
+<span class="c1">#			Option 3:  [DEFAULT] Diagnostic output lists the</span>
+<span class="c1">#                                  array index and corresponding</span>
+<span class="c1">#				   variables that either violate the</span>
+<span class="c1">#    				   range checks or are equal to the</span>
+<span class="c1">#				   missing value. An additional table</span>
+<span class="c1">#                                  lists the number of observation times</span>
+<span class="c1">#                                  with no missing values, some (but not</span>
+<span class="c1">#				   all)  missing values, and all missing</span>
+<span class="c1">#				   values; as well as similar totals for</span>
+<span class="c1">#				   the observation times that fail the</span>
+<span class="c1">#				   range checks. Range checks identify</span>
+<span class="c1">#				   negative input values and verify</span>
+<span class="c1">#				   directions to be between 0 and 360</span>
+<span class="c1">#				   degrees.</span>
+<span class="c1">#			Option 2:  In addition to the default</span>
+<span class="c1">#				   diagnostics (option 3), a table of</span>
+<span class="c1">#				   all input and output values for</span>
+<span class="c1">#				   observation times with missing data</span>
+<span class="c1">#                                  is provided.</span>
+<span class="c1">#			Option 1:  Full diagnostics -- In addition to</span>
+<span class="c1">#				   the diagnostics provided by option 2</span>
+<span class="c1">#				   and 3, a complete data chart is</span>
+<span class="c1">#                                  output. The table contains input and</span>
+<span class="c1">#                                  output values for all observation</span>
+<span class="c1">#                                  times passed to truewind.</span>
+
+<span class="c1"># crse	real list	Course TOWARD WHICH the vessel is moving over</span>
+<span class="c1">#			the ground. Referenced to true north and the</span>
+<span class="c1">#                       fixed earth.</span>
+<span class="c1"># cspd	real list	Speed of vessel over the ground. Referenced</span>
+<span class="c1">#			to the fixed earth.</span>
+<span class="c1"># hd	real list	Heading toward which bow of vessel is pointing.</span>
+<span class="c1">#			Referenced to true north.</span>
+<span class="c1"># zlr	real		Zero line reference -- angle between bow and</span>
+<span class="c1">#			zero line on anemometer.  Direction is clockwise</span>
+<span class="c1">#			from the bow.  (Use bow=0 degrees as default</span>
+<span class="c1">#			when reference not known.)</span>
+<span class="c1"># wdir 	real list	Wind direction measured by anemometer,</span>
+<span class="c1">#			referenced to the ship.</span>
+<span class="c1"># wspd	real list	Wind speed measured by anemometer,referenced to</span>
+<span class="c1">#			the vessel&#39;s frame of reference.</span>
+<span class="c1"># wmis	real list	Five element array containing missing values for</span>
+<span class="c1">#			crse, cspd, wdir, wspd, and hd. In the output,</span>
+<span class="c1">#                       the missing value for tdir is identical to the</span>
+<span class="c1">#                       missing value specified in wmis for wdir.</span>
+<span class="c1">#                       Similarly, tspd uses the missing value assigned</span>
+<span class="c1">#			to wmis for wspd.</span>
+
+<span class="c1"># OUTPUT VALUES:</span>
+
+<span class="c1"># tdir	real list	True wind direction - referenced to true north</span>
+<span class="c1">#                       and the fixed earth with a direction from which</span>
+<span class="c1">#			the wind is blowing (meteorological).</span>
+<span class="c1"># tspd	real list	True wind speed - referenced to the fixed earth.</span>
+<span class="c1"># adir	real list	Apparent wind direction (direction measured by</span>
+<span class="c1">#			wind vane, relative to true north). IS</span>
+<span class="c1">#                       REFERENCED TO TRUE NORTH &amp; IS DIRECTION FROM</span>
+<span class="c1">#                       WHICH THE WIND IS BLOWING. Apparent wind</span>
+<span class="c1">#			direction is the sum of the ship relative wind</span>
+<span class="c1">#                       direction (measured by wind vane relative to the</span>
+<span class="c1">#                       bow), the ship&#39;s heading, and the zero-line</span>
+<span class="c1">#			reference angle.  NOTE:  The apparent wind speed</span>
+<span class="c1">#			has a magnitude equal to the wind speed measured</span>
+<span class="c1">#		  	by the anemometer.</span>
+
+<span class="c1"># DIAGNOSTIC OUTPUT:</span>
+
+<span class="c1"># nw	integer		Number of observation times for which tdir and</span>
+<span class="c1">#                       tspd were calculated (without missing values)</span>
+<span class="c1"># nwpm	integer		Number of observation times with some values</span>
+<span class="c1">#  			(crse, cspd, wdir, wspd, hd) missing.  tdir,</span>
+<span class="c1">#			tspd set to missing value.</span>
+<span class="c1"># nwam	integer		Number of observation times with all values</span>
+<span class="c1">#  			(crse, cspd, wdir, wspd, hd) missing. tdir,</span>
+<span class="c1">#			tspd set to missing value.</span>
+<span class="c1"># nwf	integer		Number of observation times where the program</span>
+<span class="c1">#			fails -- at least one of the values (crse, cspd,</span>
+<span class="c1">#			wdir, wspd, hd) is invalid</span>
+
+<span class="c1">###########################################################################</span>
+<span class="c1">###########################################################################</span>
+<div class="viewcode-block" id="truewinds">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.legacy.truewinds">[docs]</a>
+<span class="k">def</span> <span class="nf">truewinds</span><span class="p">(</span><span class="n">sel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">wdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zlr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">wmis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># INITIALIZE VARIABLES</span>
+    <span class="n">tdir</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tspd</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">adir</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">nw</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nwam</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nwpm</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nwf</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">crse</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cspd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">wspd</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;All input lists must have the same length!&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">crse</span><span class="p">)):</span>
+        <span class="p">(</span><span class="n">tdir_tmp</span><span class="p">,</span>
+         <span class="n">tspd_tmp</span><span class="p">,</span>
+         <span class="n">adir_tmp</span><span class="p">,</span>
+         <span class="n">nw_count</span><span class="p">,</span>
+         <span class="n">nwam_count</span><span class="p">,</span>
+         <span class="n">nwpm_count</span><span class="p">,</span>
+         <span class="n">nwf_count</span><span class="p">)</span> <span class="o">=</span> <span class="n">truew</span><span class="p">(</span><span class="n">crse</span><span class="o">=</span><span class="n">crse</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">cspd</span><span class="o">=</span><span class="n">cspd</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">wdir</span><span class="o">=</span><span class="n">wdir</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">zlr</span><span class="o">=</span><span class="n">zlr</span><span class="p">,</span>
+                            <span class="n">hd</span><span class="o">=</span><span class="n">hd</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">wspd</span><span class="o">=</span><span class="n">wspd</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">wmis</span><span class="o">=</span><span class="n">wmis</span><span class="p">)</span>
+        <span class="n">tdir</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tdir_tmp</span><span class="p">)</span>
+        <span class="n">tspd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tspd_tmp</span><span class="p">)</span>
+        <span class="n">adir</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adir_tmp</span><span class="p">)</span>
+        <span class="n">nw</span> <span class="o">+=</span> <span class="n">nw_count</span>
+        <span class="n">nwam</span> <span class="o">+=</span> <span class="n">nwam_count</span>
+        <span class="n">nwpm</span> <span class="o">+=</span> <span class="n">nwpm_count</span>
+        <span class="n">nwf</span> <span class="o">+=</span> <span class="n">nwf_count</span>
+
+    <span class="c1">#   OUTPUT SELCTION PROCESS</span>
+    <span class="k">if</span> <span class="mi">1</span> <span class="o">==</span> <span class="p">(</span><span class="n">sel</span><span class="p">):</span>
+        <span class="n">full</span><span class="p">(</span><span class="n">crse</span><span class="p">,</span> <span class="n">cspd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">zlr</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">adir</span><span class="p">,</span> <span class="n">wspd</span><span class="p">,</span> <span class="n">tdir</span><span class="p">,</span> <span class="n">tspd</span><span class="p">)</span>
+        <span class="n">missing_values</span><span class="p">(</span><span class="n">crse</span><span class="p">,</span> <span class="n">cspd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">wspd</span><span class="p">,</span> <span class="n">tdir</span><span class="p">,</span> <span class="n">tspd</span><span class="p">,</span> <span class="n">wmis</span><span class="p">)</span>
+        <span class="n">truerr</span><span class="p">(</span><span class="n">crse</span><span class="p">,</span> <span class="n">cspd</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">wspd</span><span class="p">,</span> <span class="n">wmis</span><span class="p">,</span> <span class="n">nw</span><span class="p">,</span> <span class="n">nwpm</span><span class="p">,</span> <span class="n">nwam</span><span class="p">,</span> <span class="n">nwf</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="mi">2</span> <span class="o">==</span> <span class="p">(</span><span class="n">sel</span><span class="p">):</span>
+        <span class="n">missing_values</span><span class="p">(</span><span class="n">crse</span><span class="p">,</span> <span class="n">cspd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">wspd</span><span class="p">,</span> <span class="n">tdir</span><span class="p">,</span> <span class="n">tspd</span><span class="p">,</span> <span class="n">wmis</span><span class="p">)</span>
+        <span class="n">truerr</span><span class="p">(</span><span class="n">crse</span><span class="p">,</span> <span class="n">cspd</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">wspd</span><span class="p">,</span> <span class="n">wmis</span><span class="p">,</span> <span class="n">nw</span><span class="p">,</span> <span class="n">nwpm</span><span class="p">,</span> <span class="n">nwam</span><span class="p">,</span> <span class="n">nwf</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="mi">3</span> <span class="o">==</span> <span class="p">(</span><span class="n">sel</span><span class="p">):</span>
+        <span class="n">truerr</span><span class="p">(</span><span class="n">crse</span><span class="p">,</span> <span class="n">cspd</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">wspd</span><span class="p">,</span> <span class="n">wmis</span><span class="p">,</span> <span class="n">nw</span><span class="p">,</span> <span class="n">nwpm</span><span class="p">,</span> <span class="n">nwam</span><span class="p">,</span> <span class="n">nwf</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Selection not valid. Using selection #3 by default. &#39;</span><span class="p">)</span>
+        <span class="n">truerr</span><span class="p">(</span><span class="n">crse</span><span class="p">,</span> <span class="n">cspd</span><span class="p">,</span> <span class="n">hd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">wspd</span><span class="p">,</span> <span class="n">wmis</span><span class="p">,</span> <span class="n">nw</span><span class="p">,</span> <span class="n">nwpm</span><span class="p">,</span> <span class="n">nwam</span><span class="p">,</span> <span class="n">nwf</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">tdir</span><span class="p">,</span> <span class="n">tspd</span><span class="p">,</span> <span class="n">adir</span><span class="p">,</span> <span class="n">nw</span><span class="p">,</span> <span class="n">nwam</span><span class="p">,</span> <span class="n">nwpm</span><span class="p">,</span> <span class="n">nwf</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="c1"># NOTE: definitions below are for diagnostic purposes only, and have not</span>
+<span class="c1"># been prettified or adapted from the mechanical Matlab-to-Python conversion.</span>
+
+<span class="c1">###########################################################################</span>
+<span class="c1">###########################################################################</span>
+<span class="c1"># **********************************************************************</span>
+<span class="c1">#                      OUTPUT SUBROUTINES</span>
+<span class="c1"># **********************************************************************</span>
+
+<span class="c1"># Function:  FULL</span>
+<span class="c1">#  Purpose:  Produces a complete data table with all values.</span>
+<span class="c1">#            Accessed only when selection #1 is chosen.</span>
+
+<div class="viewcode-block" id="full">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.legacy.full">[docs]</a>
+<span class="k">def</span> <span class="nf">full</span><span class="p">(</span><span class="n">crse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zlr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">adir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">------------------------------------------------------------------------------------</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                                   FULL TABLE&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                                  ************&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  index  course  sspeed  windir  zeroln  shiphd |  appspd |  appdir  trudir  truspd&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tdir</span><span class="p">)):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%7d</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> | </span><span class="si">%7.1f</span><span class="s1"> | </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">crse</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">cspd</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">wdir</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">zlr</span><span class="p">,</span> <span class="n">hd</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">wspd</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">adir</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">tdir</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">tspd</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">                   NOTE:  Wind speed measured by anemometer is identical&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                          to apparent wind speed (appspd).&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">------------------------------------------------------------------------------------</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+    <span class="c1"># **********************************************************************</span>
+
+
+<span class="c1">#    Function:  MISSING_VALUES</span>
+<span class="c1"># Purpose:  Produces a data table of the data with missing values.</span>
+<span class="c1">#           Accessed when selection #1 or #2 is chosen.</span>
+<div class="viewcode-block" id="missing_values">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.legacy.missing_values">[docs]</a>
+<span class="k">def</span> <span class="nf">missing_values</span><span class="p">(</span><span class="n">crse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wmis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                               MISSING DATA TABLE&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                              ********************&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;          index  course  sspeed  windir  shiphd  appspd  trudir  truspd&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tdir</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">crse</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">cspd</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wdir</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wspd</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="n">hd</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">])):</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        </span><span class="si">%7d</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1"> </span><span class="si">%7.1f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">crse</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">cspd</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">wdir</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">hd</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">wspd</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">tdir</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">tspd</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">------------------------------------------------------------------------------------</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="c1"># **********************************************************************</span>
+<span class="c1">#    Function:  TRUERR</span>
+<span class="c1">#    Purpose:  List of where range tests fail and where values are</span>
+<span class="c1">#               invalid.  Also prints out number of records which are</span>
+<span class="c1">#               complete, incomplete partially, incomplete entirely, and</span>
+<span class="c1">#               where range tests fail.  Accessed when selection #1, #2,</span>
+<span class="c1">#               #3, or the default is chosen.</span>
+<div class="viewcode-block" id="truerr">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.legacy.truerr">[docs]</a>
+<span class="k">def</span> <span class="nf">truerr</span><span class="p">(</span><span class="n">crse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wspd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wmis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nw</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nwpm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nwam</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nwf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+           <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                               TRUEWINDS ERRORS&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                              ******************&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">crse</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="p">(((</span><span class="n">crse</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">crse</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">crse</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds range test failed.  Course value #</span><span class="si">%d</span><span class="s1"> invalid.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">cspd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">cspd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds range test failed.  Vessel speed value #</span><span class="si">%d</span><span class="s1"> invalid.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(((</span><span class="n">wdir</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">wdir</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wdir</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">])):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds range test failed.  Wind direction value #</span><span class="si">%d</span><span class="s1"> invalid.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">wspd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">wspd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">])):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds range test failed.  Wind speed value #</span><span class="si">%d</span><span class="s1"> invalid.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(((</span><span class="n">hd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">hd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">hd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">])):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds range test failed.  Ship heading value #</span><span class="si">%d</span><span class="s1"> invalid.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">crse</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">crse</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds data test:  Course value #</span><span class="si">%d</span><span class="s1"> missing.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cspd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds data test:  Vessel speed value #</span><span class="si">%d</span><span class="s1"> missing.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">wdir</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds data test:  Wind direction value #</span><span class="si">%d</span><span class="s1"> missing.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">wspd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">3</span><span class="p">]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds data test:  Wind speed value #</span><span class="si">%d</span><span class="s1"> missing.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">hd</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">wmis</span><span class="p">[</span><span class="mi">4</span><span class="p">]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;        Truewinds data test:  Ship heading value #</span><span class="si">%d</span><span class="s1"> missing.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">------------------------------------------------------------------------------------</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                                 DATA REVIEW&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                                *************&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                            no data missing = </span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nw</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                       part of data missing = </span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nwpm</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                           all data missing = </span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nwam</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;                         failed range tests = </span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nwf</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ian Black.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

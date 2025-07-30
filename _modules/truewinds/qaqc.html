@@ -1,0 +1,177 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>truewinds.qaqc &mdash; truewinds 0.0.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8c5712d9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            truewinds
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">truewinds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../truewinds.html">truewinds code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">truewinds</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">truewinds.qaqc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for truewinds.qaqc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
+
+
+<div class="viewcode-block" id="FillValue">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.qaqc.FillValue">[docs]</a>
+<span class="k">class</span> <span class="nc">FillValue</span><span class="p">:</span>
+    <span class="n">COG</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1111.0</span>  <span class="c1"># Course over ground</span>
+    <span class="n">SOG</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">9999.0</span>  <span class="c1"># Speed over ground</span>
+    <span class="n">WIND_DIR</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1111.0</span>  <span class="c1"># Wind direction</span>
+    <span class="n">WIND_SPEED</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">9999.0</span>  <span class="c1"># Wind speed</span>
+    <span class="n">HEADING</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5555.0</span>  <span class="c1"># Heading</span></div>
+
+
+
+<div class="viewcode-block" id="FLAG">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.qaqc.FLAG">[docs]</a>
+<span class="k">class</span> <span class="nc">FLAG</span><span class="p">:</span>
+    <span class="n">NOT_EVALUATED</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">OK</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">PROBABLY_OK</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">PROBABLY_BAD</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">BAD</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">MISSING_VALUE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">9</span></div>
+
+
+
+<div class="viewcode-block" id="flag_direction">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.qaqc.flag_direction">[docs]</a>
+<span class="k">def</span> <span class="nf">flag_direction</span><span class="p">(</span><span class="n">direction</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Flag a direction value, in degrees, if it exceeds the gross range of 0 to 360 degrees.</span>
+<span class="sd">    :param direction: An array-like object containing direction values in degrees.</span>
+<span class="sd">    :return: A numpy array of flags where 1 indicates OK and 4 indicates BAD.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">direction</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">direction</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">),</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">BAD</span><span class="p">,</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">OK</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flag</span></div>
+
+
+
+<div class="viewcode-block" id="flag_speed">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.qaqc.flag_speed">[docs]</a>
+<span class="k">def</span> <span class="nf">flag_speed</span><span class="p">(</span><span class="n">speed</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">,</span>
+               <span class="n">operator_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">operator_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Flag a speed value, in user defined units, if it is less than 0 or exceeds the operator-defined limits.</span>
+
+<span class="sd">    :param speed: An array-like object containing speed values.</span>
+<span class="sd">    :param operator_min: If supplied, values between 0 and the operator_min will be flagged as PROBABLY_OK.</span>
+<span class="sd">    :param operator_max: If supplied, values exceeding the operator_max will be flagged as PROBABLY_OK.</span>
+<span class="sd">    :return: A numpy array of flags where 1 indicates OK, 2 indicates PROBABLY_OK, and 4 indicates BAD.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">speed</span><span class="p">,</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">OK</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">operator_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">operator_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">speed</span> <span class="o">&lt;=</span> <span class="n">operator_min</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">speed</span> <span class="o">&gt;=</span> <span class="n">operator_max</span><span class="p">),</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">PROBABLY_OK</span><span class="p">,</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">OK</span><span class="p">)</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">speed</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">BAD</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flag</span></div>
+
+
+
+<div class="viewcode-block" id="check_zlr">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.qaqc.check_zlr">[docs]</a>
+<span class="k">def</span> <span class="nf">check_zlr</span><span class="p">(</span><span class="n">zlr</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Verify that the zero line reference (zlr) is a valid value.</span>
+<span class="sd">    If the input zlr is impossible (value less than 0 or greater than 360), then a ValueError is raised.</span>
+
+<span class="sd">    :param zlr: A floating point value representing the zero line reference in degrees.</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">zlr</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">zlr</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Zero line reference must be a positive floating point value between 0 and 360 degrees.&#39;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ian Black.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

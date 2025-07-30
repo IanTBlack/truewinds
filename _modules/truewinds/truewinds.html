@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>truewinds.truewinds &mdash; truewinds 0.0.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8c5712d9"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            truewinds
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">truewinds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../truewinds.html">truewinds code</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">truewinds</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">truewinds.truewinds</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for truewinds.truewinds</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
+
+<span class="kn">from</span> <span class="nn">truewinds.core</span> <span class="kn">import</span> <span class="n">deg2rad</span><span class="p">,</span> <span class="n">rad2deg</span>
+<span class="kn">from</span> <span class="nn">truewinds.qaqc</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FLAG</span><span class="p">,</span>
+                            <span class="n">flag_direction</span><span class="p">,</span>
+                            <span class="n">flag_speed</span><span class="p">,</span>
+                            <span class="n">check_zlr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="compute_apparent_wind_direction">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.truewinds.compute_apparent_wind_direction">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_apparent_wind_direction</span><span class="p">(</span><span class="n">hdg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+                                    <span class="n">rwd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+                                    <span class="n">zlr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the apparent wind direction from the true heading, relative wind direction, and zero line reference.</span>
+
+<span class="sd">    :param hdg: The true heading of the vessel or platform in degrees.</span>
+<span class="sd">    :param rwd: The relative wind direction in degrees.</span>
+<span class="sd">    :param zlr: The clockwise angle between the bow of the platform and the anemometer reference line in degrees.</span>
+<span class="sd">    :return: The apparent wind direction in degrees.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Compute apparent wind direction and reduce it to the range [0, 360].</span>
+    <span class="n">awd</span> <span class="o">=</span> <span class="n">hdg</span> <span class="o">+</span> <span class="n">rwd</span> <span class="o">+</span> <span class="n">zlr</span>
+    <span class="n">awd</span> <span class="o">=</span> <span class="n">awd</span> <span class="o">%</span> <span class="mi">360</span>
+    <span class="k">return</span> <span class="n">awd</span></div>
+
+
+
+<div class="viewcode-block" id="compute_uv">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.truewinds.compute_uv">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_uv</span><span class="p">(</span><span class="n">true_wind_direction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+               <span class="n">true_wind_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the u and v components of the true wind vector.</span>
+
+<span class="sd">    :param true_wind_direction: True wind direction in degrees.</span>
+<span class="sd">    :param true_wind_speed: True wind speed in the same units as the speed.</span>
+<span class="sd">    :return: A tuple containing the u and v components of the true wind vector.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="n">true_wind_direction</span><span class="p">,</span> <span class="n">true_wind_speed</span><span class="p">]]):</span>
+        <span class="n">return_singleton</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">return_singleton</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Convert to Numpy arrays if the inputs are not already arrays.</span>
+    <span class="n">true_wind_direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">true_wind_direction</span><span class="p">)</span>
+    <span class="n">true_wind_speed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">true_wind_speed</span><span class="p">)</span>
+
+    <span class="c1"># Compute u and v components of the true wind vector.</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">true_wind_speed</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">true_wind_direction</span><span class="p">))</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">true_wind_speed</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">true_wind_direction</span><span class="p">))</span>
+
+    <span class="n">components</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;u_true_wind&#39;</span><span class="p">:</span> <span class="n">u</span><span class="p">,</span> <span class="s1">&#39;v_true_wind&#39;</span><span class="p">:</span> <span class="n">v</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">return_singleton</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">components</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">return</span> <span class="n">components</span></div>
+
+
+
+
+<div class="viewcode-block" id="compute_true_winds">
+<a class="viewcode-back" href="../../truewinds.html#truewinds.truewinds.compute_true_winds">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_true_winds</span><span class="p">(</span><span class="n">cog</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+                       <span class="n">sog</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+                       <span class="n">hdg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+                       <span class="n">rwd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+                       <span class="n">rws</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">,</span>
+                       <span class="n">zlr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                       <span class="n">return_flags</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                       <span class="n">return_components</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArrayLike</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute true wind direction and true wind speed from a moving reference frame, such as a vessel or mobile platform.</span>
+
+<span class="sd">    This function is a vectorized adaptation of the original True Winds Python code written by Mylene Remigio</span>
+<span class="sd">    and is based on the work of Smith et al. 1999. To use the original code, please use the legacy module.</span>
+
+<span class="sd">    :param cog: Course over ground in degrees.</span>
+<span class="sd">        Most often derived from a NMEA0183 VTG message.</span>
+<span class="sd">    :param sog: Speed over ground.</span>
+<span class="sd">        Most often derived from a NMEA0183 VTG message.</span>
+<span class="sd">        Units for speed over ground much match relative wind speed (rws) units.</span>
+<span class="sd">    :param hdg: The true heading of the vessel or platform in degrees.</span>
+<span class="sd">        Most often derived from a NMEA0183 HDG message.</span>
+<span class="sd">    :param rwd: Relative wind direction in degrees from which the wind is blowing. Derived from an anemometer on the platform.</span>
+<span class="sd">    :param rws: Relative wind speed in the same units as speed over ground (sog).</span>
+<span class="sd">        Derived from an anemometer on the platform.</span>
+<span class="sd">    :param zlr: The clockwise angle between the bow of the platform and the anemometer reference line in degrees.</span>
+<span class="sd">        Default is 0.0 degrees.</span>
+<span class="sd">    :param return_flags: If True, flags are returned with the true wind dictionary.</span>
+<span class="sd">    :return: A dictionary containing true wind direction and true wind speed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Checks</span>
+    <span class="n">check_zlr</span><span class="p">(</span><span class="n">zlr</span><span class="p">)</span>
+
+    <span class="c1"># Check input types.</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="n">cog</span><span class="p">,</span> <span class="n">sog</span><span class="p">,</span> <span class="n">hdg</span><span class="p">,</span> <span class="n">rwd</span><span class="p">,</span> <span class="n">rws</span><span class="p">]]):</span>
+        <span class="n">return_singleton</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">return_singleton</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Convert to Numpy arrays if the inputs are not already arrays.</span>
+    <span class="n">cog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cog</span><span class="p">)</span>
+    <span class="n">sog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sog</span><span class="p">)</span>
+    <span class="n">hdg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hdg</span><span class="p">)</span>
+    <span class="n">rwd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rwd</span><span class="p">)</span>
+    <span class="n">rws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rws</span><span class="p">)</span>
+
+    <span class="c1"># Flag data</span>
+    <span class="n">flag_cog</span> <span class="o">=</span> <span class="n">flag_direction</span><span class="p">(</span><span class="n">cog</span><span class="p">)</span>
+    <span class="n">flag_sog</span> <span class="o">=</span> <span class="n">flag_speed</span><span class="p">(</span><span class="n">sog</span><span class="p">)</span>
+    <span class="n">flag_hdg</span> <span class="o">=</span> <span class="n">flag_direction</span><span class="p">(</span><span class="n">hdg</span><span class="p">)</span>
+    <span class="n">flag_rwd</span> <span class="o">=</span> <span class="n">flag_direction</span><span class="p">(</span><span class="n">rwd</span><span class="p">)</span>
+    <span class="n">flag_rws</span> <span class="o">=</span> <span class="n">flag_speed</span><span class="p">(</span><span class="n">rws</span><span class="p">)</span>
+
+    <span class="c1"># NaN bad data</span>
+    <span class="n">cog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flag_cog</span> <span class="o">==</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">BAD</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">cog</span><span class="p">)</span>
+    <span class="n">sog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flag_sog</span> <span class="o">==</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">BAD</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">sog</span><span class="p">)</span>
+    <span class="n">hdg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flag_hdg</span> <span class="o">==</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">BAD</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">hdg</span><span class="p">)</span>
+    <span class="n">rwd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flag_rwd</span> <span class="o">==</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">BAD</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">rwd</span><span class="p">)</span>
+    <span class="n">rws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flag_rws</span> <span class="o">==</span> <span class="n">FLAG</span><span class="o">.</span><span class="n">BAD</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">rws</span><span class="p">)</span>
+
+    <span class="c1"># Convert course over ground to math coordinates and ensure it is in the range [0, 360].</span>
+    <span class="n">mcog</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">-</span> <span class="n">cog</span>
+    <span class="n">mcog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mcog</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mcog</span> <span class="o">+</span> <span class="mi">360</span><span class="p">,</span> <span class="n">mcog</span><span class="p">)</span>
+
+    <span class="c1"># Compute apparent wind direction.</span>
+    <span class="n">awd</span> <span class="o">=</span> <span class="n">compute_apparent_wind_direction</span><span class="p">(</span><span class="n">hdg</span><span class="o">=</span><span class="n">hdg</span><span class="p">,</span> <span class="n">rwd</span><span class="o">=</span><span class="n">rwd</span><span class="p">,</span> <span class="n">zlr</span><span class="o">=</span><span class="n">zlr</span><span class="p">)</span>
+
+    <span class="c1"># Convert apparent wind direction to math coordinates and ensure it is in the range [0, 360].</span>
+    <span class="n">mawd</span> <span class="o">=</span> <span class="mi">270</span> <span class="o">-</span> <span class="n">awd</span>
+    <span class="n">mawd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mawd</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mawd</span> <span class="o">+</span> <span class="mi">360</span><span class="p">,</span> <span class="n">mawd</span><span class="p">)</span>
+    <span class="n">mawd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mawd</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">,</span> <span class="n">mawd</span> <span class="o">-</span> <span class="mi">360</span><span class="p">,</span> <span class="n">mawd</span><span class="p">)</span>
+
+    <span class="c1"># Compute true wind speed.</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">rws</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">mawd</span><span class="p">))</span> <span class="o">+</span> <span class="n">sog</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">mcog</span><span class="p">))</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">rws</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">mawd</span><span class="p">))</span> <span class="o">+</span> <span class="n">sog</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">mcog</span><span class="p">))</span>
+    <span class="n">tws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># Compute true wind direction.</span>
+    <span class="n">mtwd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-05</span><span class="p">),</span> <span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)),</span> <span class="mi">180</span> <span class="o">-</span> <span class="p">(</span><span class="mi">90</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+    <span class="n">mtwd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-05</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-05</span><span class="p">),</span> <span class="mi">270</span><span class="p">,</span>
+                    <span class="n">mtwd</span><span class="p">)</span>  <span class="c1"># If both x, y are near 0, set math direction to 270.</span>
+    <span class="n">calm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-05</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-05</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">)</span>  <span class="c1"># Calm flag of 1 (True) indicates conditions are calm.</span>
+    <span class="n">twd</span> <span class="o">=</span> <span class="mi">270</span> <span class="o">-</span> <span class="n">mtwd</span>
+    <span class="n">twd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">twd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">twd</span> <span class="o">%</span> <span class="o">-</span><span class="mi">360</span><span class="p">)</span> <span class="o">*</span> <span class="n">calm</span><span class="p">,</span> <span class="n">twd</span><span class="p">)</span>
+    <span class="n">twd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">twd</span> <span class="o">&gt;</span> <span class="mi">360</span><span class="p">,</span> <span class="p">(</span><span class="n">twd</span> <span class="o">%</span> <span class="mi">360</span><span class="p">)</span> <span class="o">*</span> <span class="n">calm</span><span class="p">,</span> <span class="n">twd</span><span class="p">)</span>
+    <span class="n">twd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">calm</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">twd</span> <span class="o">&lt;</span> <span class="mf">1e-05</span><span class="p">),</span> <span class="mi">360</span><span class="p">,</span> <span class="n">twd</span><span class="p">)</span>
+
+    <span class="c1"># Convert computed data to dictionaries.</span>
+    <span class="n">tw</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;true_wind_direction&#39;</span><span class="p">:</span> <span class="n">twd</span><span class="p">,</span>
+          <span class="s1">&#39;true_wind_speed&#39;</span><span class="p">:</span> <span class="n">tws</span><span class="p">}</span>
+
+    <span class="n">flags</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;flag_sog&#39;</span><span class="p">:</span> <span class="n">flag_sog</span><span class="p">,</span>
+             <span class="s1">&#39;flag_cog&#39;</span><span class="p">:</span> <span class="n">flag_cog</span><span class="p">,</span>
+             <span class="s1">&#39;flag_hdg&#39;</span><span class="p">:</span> <span class="n">flag_hdg</span><span class="p">,</span>
+             <span class="s1">&#39;flag_rwd&#39;</span><span class="p">:</span> <span class="n">flag_rwd</span><span class="p">,</span>
+             <span class="s1">&#39;flag_rws&#39;</span><span class="p">:</span> <span class="n">flag_rws</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">return_components</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">compute_uv</span><span class="p">(</span><span class="n">true_wind_direction</span><span class="o">=</span><span class="n">twd</span><span class="p">,</span> <span class="n">true_wind_speed</span><span class="o">=</span><span class="n">tws</span><span class="p">)</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="n">tw</span> <span class="o">|</span> <span class="n">components</span>
+
+    <span class="k">if</span> <span class="n">return_singleton</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tw</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flags</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">return_flags</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="n">tw</span> <span class="o">|</span> <span class="n">flags</span>
+
+    <span class="k">return</span> <span class="n">tw</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ian Black.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
